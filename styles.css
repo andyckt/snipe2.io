@@ -42,7 +42,7 @@ body {
     background-color: #000;
     border-radius: 12px;
     aspect-ratio: 9/16; /* Vertical/portrait aspect ratio */
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .controls {
@@ -128,6 +128,7 @@ body {
         max-height: 70vh;
         width: auto;
         margin: 0 auto;
+        object-fit: contain;
     }
 }
 
