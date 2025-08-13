@@ -46,12 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function setupCamera() {
         try {
-            // Always use the front camera (user-facing) for all devices
+            // Always use the front camera (user-facing) with simple constraints
+            // Using the same simple constraints as the Reset Camera button
             const constraints = {
-                video: {
-                    facingMode: 'user', // Front camera for selfies
-                    width: { ideal: 1080 },
-                    height: { ideal: 1920 }
+                video: { 
+                    facingMode: 'user' // Front camera for selfies, no resolution constraints
                 },
                 audio: true
             };
