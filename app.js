@@ -46,16 +46,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function setupCamera() {
         try {
-            // Request access to camera and microphone with 9:16 aspect ratio (vertical/portrait)
-            stream = await navigator.mediaDevices.getUserMedia({
+            // Request access to camera and microphone with fullscreen vertical mode
+            const constraints = {
                 video: {
                     facingMode: 'user',
-                    width: { ideal: 720 },
-                    height: { ideal: 1280 },
+                    width: { ideal: 1080 },
+                    height: { ideal: 1920 },
                     aspectRatio: { ideal: 9/16 }
                 },
                 audio: true
-            });
+            };
+            
+            // Try to get the exact constraints for better fullscreen experience
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (error) {
+                console.log('Could not get exact constraints, trying with defaults');
+                // Fallback to more flexible constraints
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+            }
             
             // Connect the stream to the video element
             cameraPreview.srcObject = stream;
