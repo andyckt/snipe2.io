@@ -53,6 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 audio: true
             };
             
+            // Detect iOS device
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            // iOS Safari sometimes needs specific audio constraints
+            if (isIOS) {
+                console.log('Using iOS-specific constraints');
+                constraints.audio = {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                };
+            }
+            
             try {
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (error) {
@@ -103,22 +116,41 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Setup media recorder
         recordedChunks = [];
-        const options = { mimeType: 'video/webm;codecs=vp9,opus' };
         
         try {
-            mediaRecorder = new MediaRecorder(stream, options);
-        } catch (e) {
-            console.error('MediaRecorder error:', e);
+            // Check for supported MIME types (iOS Safari doesn't support webm)
+            let mimeType = 'video/webm';
             
-            // Try with a different MIME type
-            try {
-                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            } catch (e2) {
-                console.error('MediaRecorder fallback error:', e2);
-                alert('Recording not supported in this browser');
-                startBtn.disabled = false;
-                return;
+            // Detect iOS device
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            // Try to find a supported MIME type
+            if (MediaRecorder.isTypeSupported('video/mp4')) {
+                mimeType = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+                mimeType = 'video/webm;codecs=vp9';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+                mimeType = 'video/webm;codecs=vp8';
+            } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                mimeType = 'video/webm';
             }
+            
+            console.log('Using MIME type:', mimeType);
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+        } catch (err) {
+            console.error('MediaRecorder error:', err);
+            
+            // Detect iOS device
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            // Provide more detailed error for debugging
+            if (isIOS) {
+                console.log('iOS device detected, error might be related to MIME type or permissions');
+            }
+            
+            alert('Failed to start recording. Please try again. Error: ' + err.message);
+            startBtn.disabled = false;
+            return;
         }
         
         // MediaRecorder event handlers
@@ -129,15 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         mediaRecorder.onstop = () => {
+            // Use the same MIME type that was selected for recording
+            const mimeType = mediaRecorder.mimeType;
+            const fileExtension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+            
             // Create a blob from the recorded chunks
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const blob = new Blob(recordedChunks, { type: mimeType });
             
             // Create a download link for the recorded video
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = 'recording.webm';
+            a.download = `snipe-recording.${fileExtension}`;
             document.body.appendChild(a);
             a.click();
             
