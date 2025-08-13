@@ -46,14 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function setupCamera() {
         try {
-            // Request access to camera and microphone with more reasonable constraints
-            // to avoid excessive zooming on mobile devices
+            // Always use the front camera (user-facing) for all devices
             const constraints = {
                 video: {
-                    facingMode: 'user',
-                    width: { ideal: 720 },
-                    height: { ideal: 1280 },
-                    // Remove fixed aspect ratio to allow the camera to use its natural view
+                    facingMode: 'user', // Front camera for selfies
+                    width: { ideal: 1080 },
+                    height: { ideal: 1920 }
                 },
                 audio: true
             };
@@ -71,6 +69,64 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Connect the stream to the video element
             cameraPreview.srcObject = stream;
+            
+            // Get the actual track settings to adjust the UI if needed
+            const videoTrack = stream.getVideoTracks()[0];
+            const settings = videoTrack.getSettings();
+            console.log('Camera settings:', settings);
+            
+            // Check camera orientation and adjust display
+            if (settings.width && settings.height) {
+                const isPortrait = settings.height > settings.width;
+                console.log('Camera orientation is', isPortrait ? 'portrait' : 'landscape');
+                console.log('Actual camera dimensions:', settings.width, 'x', settings.height);
+                
+                // Add a button to switch cameras if available
+                if (navigator.mediaDevices.enumerateDevices) {
+                    navigator.mediaDevices.enumerateDevices()
+                        .then(devices => {
+                            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                            if (videoDevices.length > 1) {
+                                // Create a camera switch button if not already present
+                                if (!document.getElementById('switch-camera')) {
+                                    const switchBtn = document.createElement('button');
+                                    switchBtn.id = 'switch-camera';
+                                    switchBtn.className = 'btn';
+                                    switchBtn.textContent = 'Reset Camera';
+                                    switchBtn.style.position = 'absolute';
+                                    switchBtn.style.top = '20px';
+                                    switchBtn.style.right = '20px';
+                                    switchBtn.style.zIndex = '20';
+                                    switchBtn.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                                    switchBtn.style.color = 'white';
+                                    
+                                    document.querySelector('.camera-container').appendChild(switchBtn);
+                                    
+                                    // Add event listener for camera switching
+                                    switchBtn.addEventListener('click', () => {
+                                        // Always use front camera, but switch between available front cameras if multiple exist
+                                        // Stop current stream
+                                        stream.getTracks().forEach(track => track.stop());
+                                        
+                                        // Request new stream with front camera
+                                        navigator.mediaDevices.getUserMedia({
+                                            video: { facingMode: 'user' },
+                                            audio: true
+                                        }).then(newStream => {
+                                            stream = newStream;
+                                            cameraPreview.srcObject = newStream;
+                                            
+                                            // Update videoTrack reference
+                                            const newVideoTrack = newStream.getVideoTracks()[0];
+                                        }).catch(err => {
+                                            console.error('Error switching camera:', err);
+                                        });
+                                    });
+                                }
+                            }
+                        });
+                }
+            }
             
             // Update UI
             hasPermission = true;

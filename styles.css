@@ -40,11 +40,12 @@ body {
 
 #camera-preview {
     height: 100%;
-    width: auto;
+    width: 100%;
     display: block;
     transform: scaleX(-1); /* Mirror the video */
     background-color: #000;
-    object-fit: contain;
+    object-fit: cover; /* Use cover to fill the container */
+    transition: transform 0.3s ease;
 }
 
 .controls {
@@ -161,12 +162,5 @@ body {
     
     .countdown {
         font-size: 80px;
-    }
-    
-    #camera-preview {
-        width: auto;
-        height: 100%;
-        max-width: 100%;
-        object-fit: contain;
     }
 }
