@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const permissionBtn = document.getElementById('permission-btn');
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
-    const permissionMessage = document.getElementById('permission-message');
     const countdown = document.getElementById('countdown');
     
     // Global variables
@@ -39,8 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await setupCamera();
         } catch (error) {
             console.error('Error accessing camera:', error);
-            permissionMessage.textContent = 'Camera access denied. Please enable permissions in your browser settings.';
-            permissionMessage.style.color = '#f72585';
+            alert('Camera access denied. Please enable permissions in your browser settings.');
         }
     }
     
@@ -85,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hasPermission = true;
             permissionBtn.style.display = 'none';
             startBtn.disabled = false;
-            permissionMessage.style.display = 'none';
             
         } catch (error) {
             console.error('Error accessing media devices:', error);

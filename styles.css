@@ -101,17 +101,7 @@ body {
     display: none;
 }
 
-.message {
-    text-align: center;
-    color: white;
-    font-size: 14px;
-    position: absolute;
-    bottom: 80px;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-}
+
 
 .countdown {
     position: absolute;
